@@ -24,6 +24,7 @@ namespace PersonalCalendar
             initializeCalendar();
         }
 
+        //initialize the data in the calendar and load events in the event list depending on whether the user is viewing events for the day or for the entire month
         private void initializeCalendar()
         {
             editEventButton.Enabled = false;
@@ -45,6 +46,7 @@ namespace PersonalCalendar
                 allEvents = databaseConnection.getAllEventsForMonth(selectedStartDate);
             }
 
+            //add all of the events loaded from the database to the event list on the left side
             eventListBox.Items.Clear();
             foreach(Event e in allEvents) {
                 eventListBox.Items.Add(e);
@@ -53,6 +55,7 @@ namespace PersonalCalendar
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //if no event is selected, disabled edit, view, and delete buttons. otherwise, allow user to click them
             if (eventListBox.SelectedItem == null)
             {
                 editEventButton.Enabled = false;
@@ -67,6 +70,7 @@ namespace PersonalCalendar
             }
         }
 
+        //bring up the form for adding an event and initialize its data
         private void addEventButton_Click(object sender, EventArgs e)
         {
             Event newEvent = new Event();
@@ -77,8 +81,10 @@ namespace PersonalCalendar
             editForm.ShowDialog();
         }
 
+        //when the user changes the dates, change the events in the events panel on the left and reinitialize calednar to refresh everything
         private void monthCalendar1_DateChanged(object sender, DateRangeEventArgs e)
         {
+            //we only change stuff for viewEventsForDay because if we're viewing events for the month, all the events for the month will be in left panel anyway
             if (viewEventsForDay) {
                 changeEventsForDayLabel();
                 initializeCalendar();
@@ -90,6 +96,8 @@ namespace PersonalCalendar
         {
             DateTime selectedDate = monthCalendar1.SelectionRange.Start;
 
+            //if user has selected today, yesterday, or tomorrow, change the label to refelct that by getting the current date
+            //otherwise, show Events for 'specific date' in the label
             if (selectedDate.Date == DateTime.Today)
             {
                 eventsForDayLabel.Text = "Events for Today";
@@ -108,6 +116,7 @@ namespace PersonalCalendar
             }
         }
 
+        //if user has selected an event and clicks edit event button, bring up the edit event form
         private void editEventButton_Click(object sender, EventArgs e)
         {
             Event selectedEvent = (Event) eventListBox.SelectedItem;
@@ -116,6 +125,7 @@ namespace PersonalCalendar
             editForm.ShowDialog();
         }
 
+        //if the user has selected an event and clicks delete event button, bring up the delete event dialog box
         private void deleteEventButton_Click(object sender, EventArgs e)
         {
             Event selectedEvent = (Event)eventListBox.SelectedItem;
@@ -124,6 +134,7 @@ namespace PersonalCalendar
             confirmDeleteForm.ShowDialog();
         }
 
+        //if the user has selected an event and clicks view event button, bring up the view event dialog box
         private void viewEventButton_Click(object sender, EventArgs e)
         {
             Event selectedEvent = (Event)eventListBox.SelectedItem;
@@ -160,6 +171,7 @@ namespace PersonalCalendar
             initializeCalendar();
         }
 
+        //refresh window
         public void reloadAndShow()
         {
             initializeCalendar();
