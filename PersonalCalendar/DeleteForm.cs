@@ -23,7 +23,7 @@ namespace PersonalCalendar
             this.mainForm = mainForm;
         }
 
-        //delete button click
+        //delete button click, confirm user wants to delete the event
         private void button1_Click(object sender, EventArgs e)
         {
             databaseConnection.deleteEventFromDatabase(selectedEvent.id);
@@ -32,6 +32,7 @@ namespace PersonalCalendar
             confirmDeleteForm.ShowDialog();
         }
 
+        //after event is confirmed deleted, return to main form
         private void button2_Click(object sender, EventArgs e)
         {
             mainForm.Show();

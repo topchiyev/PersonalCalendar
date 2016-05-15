@@ -17,7 +17,6 @@ namespace PersonalCalendar
 
         public Event()
         {
-            // TODO: Complete member initialization
         }
     }
 }

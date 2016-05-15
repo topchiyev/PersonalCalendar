@@ -15,7 +15,8 @@ namespace PersonalCalendar
         {
             openConnection();
         }
-
+        
+        //destructor for closing the database when the program is closed. this shouldn't need to be called manually anywhere
         ~Database()
         {
             closeConnection();
@@ -91,9 +92,11 @@ namespace PersonalCalendar
         //get all of the events in the database for a selected day
         public List<Event> getAllEventsForDay(DateTime selectedStartDate)
         {
-            String query = "SELECT * FROM event WHERE date(start_time)=@start_time";
+            String query = "SELECT * FROM event WHERE DAY(start_time)=@day AND YEAR(start_time)=@year AND MONTH(start_time)=@month";
             MySqlCommand command = prepareQuery(query);
-            command.Parameters.AddWithValue("@start_time", selectedStartDate);
+            command.Parameters.AddWithValue("@day", selectedStartDate.Day);
+            command.Parameters.AddWithValue("@month", selectedStartDate.Month);
+            command.Parameters.AddWithValue("@year", selectedStartDate.Year);
             MySqlDataReader reader = command.ExecuteReader();
 
             return getAllEvents(reader);

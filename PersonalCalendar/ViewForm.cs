@@ -28,6 +28,7 @@ namespace PersonalCalendar
             descriptionLabel.Text = selectedEvent.description;
         }
 
+        //after user is done viewing event, return to the main form
         private void okButton_Click(object sender, EventArgs e)
         {
             mainForm.Show();

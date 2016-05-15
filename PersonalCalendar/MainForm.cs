@@ -27,6 +27,7 @@ namespace PersonalCalendar
         //initialize the data in the calendar and load events in the event list depending on whether the user is viewing events for the day or for the entire month
         private void initializeCalendar()
         {
+            //make sure we have disabled the buttons
             editEventButton.Enabled = false;
             viewEventButton.Enabled = false;
             deleteEventButton.Enabled = false;
@@ -35,14 +36,17 @@ namespace PersonalCalendar
             eventListBox.DisplayMember = "title";
             eventListBox.ValueMember = "title";
 
+            //get all of the events from the database that are required for the current view
             List<Event> allEvents = new List<Event>();
             DateTime selectedStartDate = monthCalendar1.SelectionRange.Start;
             if (viewEventsForDay)
             {
+                //if user is viewing events for a certain day, only grab those events
                 allEvents = databaseConnection.getAllEventsForDay(selectedStartDate);
             }
             else
             {
+                //if user is viewing events for the selected month, grab those events
                 allEvents = databaseConnection.getAllEventsForMonth(selectedStartDate);
             }
 
@@ -53,15 +57,17 @@ namespace PersonalCalendar
             }
         }
 
+        //if no event is selected, disabled edit, view, and delete buttons. otherwise, allow user to click them
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            //if no event is selected, disabled edit, view, and delete buttons. otherwise, allow user to click them
+            //disable buttons if no event selected
             if (eventListBox.SelectedItem == null)
             {
                 editEventButton.Enabled = false;
                 viewEventButton.Enabled = false;
                 deleteEventButton.Enabled = false;
             }
+            //enable buttons if an event is selected
             else
             {
                 editEventButton.Enabled = true;
@@ -74,8 +80,13 @@ namespace PersonalCalendar
         private void addEventButton_Click(object sender, EventArgs e)
         {
             Event newEvent = new Event();
-            newEvent.startTime = DateTime.Now; //initialize date value or else an exception will be thrown
-            newEvent.endTime = DateTime.Now.AddHours(1); //initialize end date and time as one hour from start date
+
+            //get the date for right now and then reinitialize it with the seconds at 0. We won't be editing seconds for the event times
+            var now = DateTime.Now;
+            var date = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
+
+            newEvent.startTime = date; //initialize date value or else an exception will be thrown
+            newEvent.endTime = date.AddHours(1); //initialize end date and time as one hour from start date
 
             EditForm editForm = new EditForm(newEvent, this, SAVE_NEW_EVENT);
             editForm.ShowDialog();
@@ -143,6 +154,7 @@ namespace PersonalCalendar
             viewForm.ShowDialog();
         }
 
+        //Change whether the user is viewing events for the month or only for the selected day
         private void allEventsButton_Click(object sender, EventArgs e)
         {
             //if we're currently viewing events for a certain day and user clicks this button

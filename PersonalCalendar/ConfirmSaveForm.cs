@@ -22,7 +22,7 @@ namespace PersonalCalendar
             this.callingForm = callingForm;
         }
 
-        //OK button
+        //OK button, close this form and return to main window
         private void button1_Click(object sender, EventArgs e)
         {
             this.Close();

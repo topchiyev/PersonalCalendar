@@ -21,74 +21,127 @@ namespace PersonalCalendar
             InitializeComponent();
 
             this.mainForm = mainForm;
-
             databaseConnection = Database.Instance;
             this.calendarEvent = calendarEvent;
             this.update = update;
 
+            //INitialize DateTime pickers
             startDateTimePicker.Format = DateTimePickerFormat.Custom;
-            startDateTimePicker.CustomFormat = "MM/dd/yyyy hh:mm:ss tt";
+            startDateTimePicker.CustomFormat = "MM/dd/yyyy hh:mm tt";
             endDateTimePicker.Format = startDateTimePicker.Format;
             endDateTimePicker.CustomFormat = startDateTimePicker.CustomFormat;
 
+            //initialize the input boxes with the information passed to this method. Will be empty if this is a new event.
             titleTextBox.Text = calendarEvent.title;
             descriptionTextBox.Text = calendarEvent.description;
             startDateTimePicker.Value = calendarEvent.startTime;
             endDateTimePicker.Value = calendarEvent.endTime;
         }
 
+
         //get date selected by user before saving
         //first get all events for a certain day
         //then see if the time conflicts with another time
-        //are we just using start time? or should i have included a start time and end time
-        private Boolean checkForConflicts()
+        private Boolean conflictFound()
         {
             List<Event> allEventsForDay = databaseConnection.getAllEventsForDay(startDateTimePicker.Value);
 
+            DateTime chosenStartTime = startDateTimePicker.Value;
+            DateTime chosenEndTime = endDateTimePicker.Value;
+            bool conflictFound = false;
             foreach (Event e in allEventsForDay)
             {
-                //compareTo returns -1 for startDate is earlier than, 0 for same time as, 1 for greater than
-
-                //if the two events start at the same time
-                if (startDateTimePicker.Value.CompareTo(e.startTime) == 0)
+                //make sure we're not conflict checking with the current meeting (if we're editing)
+                if(e.title != titleTextBox.Text.ToString())
                 {
-                    return true;
-                }
-
-                //if the chosen event starts after an existing events start time
-                if (startDateTimePicker.Value.CompareTo(e.startTime) >= 1)
-                {
-                    //if the chosen date starts at the exact time an event ends OR if the chosen date starts before another event ends
-                    if (startDateTimePicker.Value.CompareTo(e.endTime) <= 0)
+                    //if user selected starttime is less than other events end time and selected end time is greater than other events start time, then a conflict exists
+                    if ((chosenStartTime <= e.endTime) && (chosenEndTime >= e.startTime))
                     {
-                        return true;
+                        conflictFound = true;
+                        break;
                     }
-                }
-
-               
+                }              
             }
 
-            return false;
+            return conflictFound;
+        }
+
+        //Check if an event is valid by checking if title, description are empty and seeing if the date and times are in the right format
+        private Boolean eventValid()
+        {
+            Boolean eventValid = true;
+            String title = titleTextBox.Text.ToString();
+            String description = titleTextBox.Text.ToString();
+
+            //make sure title isn't null, empty, or whitespace
+            if(String.IsNullOrWhiteSpace(title))
+            {
+                eventValid = false;
+            }
+            //make sure description isn't null, empty, or whitespace
+            if(String.IsNullOrWhiteSpace(description))
+            {
+                eventValid = false;
+            }
+
+            //dates should always be filled out, but just in case, make sure they aren't null
+            DateTime startTime = startDateTimePicker.Value;
+            DateTime endTime = endDateTimePicker.Value;
+            if (startTime == null)
+            {
+                eventValid = false;
+            }
+
+            if(endTime == null)
+            {
+                eventValid = false;
+            }
+
+            //start time should always be after end time
+            if(startTime > endTime)
+            {
+                eventValid = false;
+            }
+
+            return eventValid;
         }
 
         //save button
         private void button1_Click(object sender, EventArgs e)
         {
-            if (update)
-            {
-                databaseConnection.updateEventInDatabase(calendarEvent.id, titleTextBox.Text, descriptionTextBox.Text, startDateTimePicker.Value, endDateTimePicker.Value);
-            }
-            else
-            {
-                databaseConnection.saveEventToDatebase(titleTextBox.Text, descriptionTextBox.Text, startDateTimePicker.Value, endDateTimePicker.Value);
-            }
+            //if no conflicts are found and the event is a valid event (all info filled out)
+            if(!conflictFound() && eventValid()) {
+                if (update)
+                {
+                    //update an event in the database
+                    databaseConnection.updateEventInDatabase(calendarEvent.id, titleTextBox.Text, descriptionTextBox.Text, startDateTimePicker.Value, endDateTimePicker.Value);
+                }
+                else
+                {
+                    //save a new event to the database
+                    databaseConnection.saveEventToDatebase(titleTextBox.Text, descriptionTextBox.Text, startDateTimePicker.Value, endDateTimePicker.Value);
+                }
 
-            //check if no errors were found
+                //show user a form that confirms the save is done
+                ConfirmSaveForm confirmSaveForm = new ConfirmSaveForm(mainForm, this);
+                confirmSaveForm.ShowDialog();
+            } else
+            {
+                //if a conflict is found with another event, show an error message
+                if(conflictFound())
+                {
+                    MessageBox.Show("The selected event conflicts with another event, please change the times of the meeting", "Conflicting Meeting Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
 
-            ConfirmSaveForm confirmSaveForm = new ConfirmSaveForm(mainForm, this);
-            confirmSaveForm.ShowDialog();
+                //if the event is not valid show an error message
+                if(!eventValid())
+                {
+                    MessageBox.Show("Not all information has been filled out correctly", "Event Information Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
+        //Stop editing or creating the current event
         private void cancelButton_Click(object sender, EventArgs e)
         {
             mainForm.Show();
